@@ -57,14 +57,14 @@
 }
 
 .cpufreq-separator-menu-item {
-  height: 1px;
-  margin: 6px 24px;
-  background-color: transparent;
-  border-color: rgba(48,44,47,0.6);
-  border-bottom-width: 1px;
-  border-bottom-style: solid;
+  display: none;
 }
 
 .logo-icon {
     icon-size: 96px;
+}
+
+.cpufreq-main {
+    width: 80px;
+    text-align: center;
 }

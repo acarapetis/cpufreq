@@ -110,7 +110,7 @@ const FrequencyIndicator = new Lang.Class({
 
         this._settings = Convenience.getSettings();
 
-        this.statusLabel = new St.Label ({text: "\u26A0", y_expand: true, y_align: Clutter.ActorAlign.CENTER});
+        this.statusLabel = new St.Label ({text: "\u26A0", y_expand: true, y_align: Clutter.ActorAlign.CENTER, style_class: 'cpufreq-main'});
         let _box = new St.BoxLayout();
         _box.add_actor(this.statusLabel);
         this.actor.add_actor(_box);
@@ -1547,10 +1547,6 @@ const InfoItem = new Lang.Class({
 
     _init: function (params) {
         this.parent ({ reactive: false, can_focus: false });
-        this._icon = new St.Label ({text: "☺", style: 'color: #33d552; font-weight: bold; font-size: 56pt;'});//new St.Icon ({ style_class: 'logo-icon' });
-        this._icon.y_expand = true;
-        this._icon.y_align = Clutter.ActorAlign.CENTER;
-        this.actor.add_child (this._icon);
         //this._icon.icon_name = 'smile';
         this.vbox = new St.BoxLayout({ vertical: true, style: 'padding: 8px; spacing: 4px;' });
         this.vbox.align = St.Align.END;
@@ -1567,11 +1563,6 @@ const InfoItem = new Lang.Class({
         this._cores = new St.Label ({text: "2 performance, 4 ondemand"});
         this._cores.align = St.Align.START;
         this.vbox.add_child (this._cores);
-        this._warn = new St.Label ({text: "☺ 😐 ☹ WARN MESSAGE", style: 'color: orange; font-weight: bold;'});
-        this._warn.align = St.Align.START;
-        this.vbox.add_child (this._warn);
-        this._warn.visible = false;
-        this.warn_lvl = 0;
         this.balance = "";
         this.cpufreqctl_path = GLib.find_program_in_path ('cpufreqctl');
         if (this.cpufreqctl_path) {
@@ -1693,57 +1684,18 @@ const InfoItem = new Lang.Class({
     },
 
     set_warns: function () {
-        if (this.warn_lvl > 1) {
-            this._icon.text = "☹";
-            this._icon.set_style ('color: red; font-weight: bold; font-size: 56pt;');
-            this._warn.visible = true;
-            this._warn.set_style ('color: red; font-weight: bold;');
-        } else if (this.warn_lvl > 0) {
-            this._icon.text = "😐";
-            this._icon.set_style ('color: orange; font-weight: bold; font-size: 56pt;');
-            this._warn.visible = true;
-            this._warn.set_style ('color: orange; font-weight: bold;');
-        } else {
-            this._icon.text = "☺";
-            this._icon.set_style ('color: #33d552; font-weight: bold; font-size: 56pt;');
-            this._warn.visible = false;
-        }
-        this._warn.text = this.warnmsg;
     },
 
     get_throttle: function () {
-        let s = "", i = 0;
-        cpufreq_output = GLib.spawn_command_line_sync (this.cpufreqctl_path + " throttle");
-        if (cpufreq_output[0]) freqInfo = cpufreq_output[1].toString().split("\n")[0];
-        if (freqInfo) {
-            i = parseInt (freqInfo);
-            if (!i) return;
-            s = "CPU THROTTLE: " + i;
-            if (i != tt) {
-                this.warn_lvl = 2;
-                s += "\nTHROTTLE SPEED: " + Math.round ((i-tt)/2, 1);
-                tt_time = Date.now ();
-            } else if ((this.warn_lvl == 0) && ((Date.now() - tt_time) < 600000)) this.warn_lvl = 1;
-            tt = i;
-            if (this.warnmsg.length > 0) this.warnmsg += "\n" + s;
-            else this.warnmsg = s;
-        }
     },
 
     get_balance: function () {
-        if (this.balance) {
-            if (this.warn_lvl == 0) this.warn_lvl = 1;
-            if (this.warnmsg.length > 0) this.warnmsg += "\n" + this.balance;
-            else this.warnmsg = this.balance;
-        }
     },
 
     update: function (governors) {
         this.warnmsg = "";
         this.warn_lvl = 0;
         this._load.text = this.loadavg;
-        this.get_throttle ();
-        this.get_balance ();
         this.set_warns ();
         if (governors) {
             this._cores.visible = true;
